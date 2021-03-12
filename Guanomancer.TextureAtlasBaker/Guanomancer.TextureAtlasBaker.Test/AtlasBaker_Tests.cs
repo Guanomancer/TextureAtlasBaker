@@ -107,18 +107,18 @@ namespace Guanomancer.TextureAtlasBaker.Test
         [TestCase(new string[] { "x", null, "z" }, typeof(ArrayTypeMismatchException))]
         [TestCase(new string[] { "x", "x" }, typeof(ArgumentOutOfRangeException))]
         [TestCase(new string[] { "x", "y" }, null)]
-        public void LayerIdentifiers_Throws_WhenInvalid_OtherwiseSetsLayerIdentifiers(string[] testValue, Type expectedExceptionTypeIfAny)
+        public void ChannelIdentifiers_Throws_WhenInvalid_OtherwiseSetsChannelIdentifiers(string[] testValue, Type expectedExceptionTypeIfAny)
         {
             var baker = new AtlasBaker();
 
             if (expectedExceptionTypeIfAny != null)
             {
-                Assert.Throws(expectedExceptionTypeIfAny, () => { baker.LayerIdentifiers = testValue; });
+                Assert.Throws(expectedExceptionTypeIfAny, () => { baker.ChannelIdentifiers = testValue; });
             }
             else
             {
-                baker.LayerIdentifiers = testValue;
-                Assert.AreEqual(testValue, baker.LayerIdentifiers);
+                baker.ChannelIdentifiers = testValue;
+                Assert.AreEqual(testValue, baker.ChannelIdentifiers);
             }
         }
     }

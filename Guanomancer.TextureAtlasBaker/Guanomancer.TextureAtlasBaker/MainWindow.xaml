@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Guanomancer.TextureAtlasBaker"
         mc:Ignorable="d"
         Title="Guanomancer - Texture Atlas Baker" Background="Transparent" WindowStyle="None" ResizeMode="NoResize"
-        Width="1000" Height="700"
+        Width="1000" Height="1110"
         MouseDown="Window_MouseDown" AllowsTransparency="true">
     <Border BorderBrush="White" BorderThickness="2" CornerRadius="8" Background="#222222"
             Margin="5" Padding="10">
@@ -65,22 +65,69 @@
                         </DockPanel>
 
                         <Border BorderThickness="0,0,0,1" BorderBrush="White" Margin="0,5">
-                            <Label Foreground="White" FontSize="16pt">Layers</Label>
+                            <Label Foreground="White" FontSize="16pt">Channels</Label>
                         </Border>
                         <DockPanel VerticalAlignment="Center">
                             <Label Foreground="White" FontSize="12pt"></Label>
                             <StackPanel Orientation="Vertical" HorizontalAlignment="Right">
-                                <ListBox x:Name="_lstLayers" Foreground="Black" FontSize="12pt" Width="200" Height="120"
-                                         SelectionChanged="_lstLayers_SelectionChanged">
+                                <ListBox x:Name="_lstChannels" Foreground="Black" FontSize="12pt" Width="200" Height="120"
+                                         SelectionChanged="_lstChannels_SelectionChanged">
+                                    <ListBoxItem>Color/Albedo/Diffuse</ListBoxItem>
+                                    <ListBoxItem>Normal</ListBoxItem>
+                                    <ListBoxItem>Smoothness/Roughness</ListBoxItem>
+                                    <ListBoxItem>Metallic</ListBoxItem>
+                                    <ListBoxItem>Occlusion</ListBoxItem>
+                                    <ListBoxItem>Detail</ListBoxItem>
+                                    <ListBoxItem>Displacement/Height</ListBoxItem>
+                                    <ListBoxItem>Emission</ListBoxItem>
                                 </ListBox>
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBox x:Name="_txtLayerName" Foreground="Black" FontSize="12pt" Width="100" Height="24"
-                                             TextChanged="_txtLayerName_TextChanged" KeyDown="_txtLayerName_KeyDown">_Color</TextBox>
-                                    <Button x:Name="_btnAddLayer" FontSize="12pt" Width="40" Height="24"
-                                            Click="_btnAddLayer_Click">Add</Button>
-                                    <Button x:Name="_btnRemoveLayer" IsEnabled="false" FontSize="12pt" Width="60" Height="24"
-                                            Click="_btnRemoveLayer_Click">Remove</Button>
+                                    <TextBox x:Name="_txtChannelName" Foreground="Black" FontSize="12pt" Width="100" Height="24"
+                                             TextChanged="_txtChannelName_TextChanged" KeyDown="_txtChannelName_KeyDown">Base_Color</TextBox>
+                                    <Button x:Name="_btnAddChannel" FontSize="12pt" Width="40" Height="24"
+                                            Click="_btnAddChannel_Click">Add</Button>
+                                    <Button x:Name="_btnRemoveChannel" IsEnabled="false" FontSize="12pt" Width="60" Height="24"
+                                            Click="_btnRemoveChannel_Click">Remove</Button>
                                 </StackPanel>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <Border BorderThickness="0,0,0,1" BorderBrush="White" Margin="0,5">
+                            <Label Foreground="White" FontSize="16pt">Mask channels (Name or #00-FF)</Label>
+                        </Border>
+                        <DockPanel VerticalAlignment="Center">
+                            <Label Foreground="White" FontSize="12pt">Red:</Label>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <TextBox x:Name="_txtRedChannelIdentifier" FontSize="12pt" Width="150" Height="24">Metallic</TextBox>
+                                <CheckBox x:Name="_chkRedChannelInvert" ToolTip="Invert"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <DockPanel VerticalAlignment="Center">
+                            <Label Foreground="White" FontSize="12pt">Green:</Label>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <TextBox x:Name="_txtGreenChannelIdentifier" FontSize="12pt" Width="150" Height="24">Occlusion</TextBox>
+                                <CheckBox x:Name="_chkGreenChannelInvert" ToolTip="Invert"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <DockPanel VerticalAlignment="Center">
+                            <Label Foreground="White" FontSize="12pt">Blue:</Label>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <TextBox x:Name="_txtBlueChannelIdentifier" FontSize="12pt" Width="150" Height="24">Detail</TextBox>
+                                <CheckBox x:Name="_chkBlueChannelInvert" ToolTip="Invert"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <DockPanel VerticalAlignment="Center">
+                            <Label Foreground="White" FontSize="12pt">Alpha:</Label>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <TextBox x:Name="_txtAlphaChannelIdentifier" FontSize="12pt" Width="150" Height="24">Smoothness</TextBox>
+                                <CheckBox x:Name="_chkAlphaChannelInvert" ToolTip="Invert"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <DockPanel VerticalAlignment="Center">
+                            <Label Foreground="White" FontSize="12pt"></Label>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button x:Name="_btnPreviewMask" FontSize="12pt" Width="200" Height="24"
+                                            Click="_btnPreviewMask_Click">Preview mask</Button>
                             </StackPanel>
                         </DockPanel>
 
@@ -107,9 +154,16 @@
                     <StackPanel Orientation="Vertical">
 
                         <Border BorderThickness="0,0,0,1" BorderBrush="White" Margin="0,5">
-                            <Label Foreground="White" FontSize="16pt" >Source files (drag to add, double-click to remove)</Label>
+                            <Label Foreground="White" FontSize="16pt">Source files (drag to add, double-click to remove)</Label>
                         </Border>
                         <Grid x:Name="_gridSourceFiles" Width="400" Height="400"/>
+
+                        <Border BorderThickness="0,0,0,1" BorderBrush="White" Margin="0,5">
+                            <Label Foreground="White" FontSize="16pt">Preview</Label>
+                        </Border>
+                        <Border BorderThickness="1" BorderBrush="silver">
+                            <Image x:Name="_imgPreview" Width="500" Height="500"></Image>
+                        </Border>
                     </StackPanel>
                 </Border>
             </DockPanel>

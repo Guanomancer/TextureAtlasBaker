@@ -1,6 +1,7 @@
 ﻿using Guanomancer.TextureAtlasBaker.Core;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,6 +24,7 @@ namespace Guanomancer.TextureAtlasBaker
     {
         private bool _isInitialized = false;
         private AtlasBaker _baker = new AtlasBaker();
+        private List<string>[,] _sources;
 
         public MainWindow()
         {
@@ -31,7 +33,7 @@ namespace Guanomancer.TextureAtlasBaker
 
             _txtHorizontal.Text = _baker.LayoutWidth.ToString();
             _txtVertical.Text = _baker.LayoutHeight.ToString();
-            
+
             foreach (var pixelFormat in AtlasBaker.GetPixelFormats())
                 _cboPixelFormat.Items.Add(pixelFormat);
             _cboPixelFormat.SelectedItem = _baker.PixelFormatString;
@@ -43,29 +45,65 @@ namespace Guanomancer.TextureAtlasBaker
         {
             if (!_isInitialized) return;
 
+            _sources = new List<string>[_baker.LayoutWidth, _baker.LayoutHeight];
+
+            for (int r = 0; r < _baker.LayoutHeight; r++)
+                for (int c = 0; c < _baker.LayoutWidth; c++)
+                    _sources[c, r] = new List<string>();
+
             _gridSourceFiles.Children.Clear();
             _gridSourceFiles.ColumnDefinitions.Clear();
             _gridSourceFiles.RowDefinitions.Clear();
 
-            for(int c = 0; c < _baker.LayoutWidth; c++)
+            for (int c = 0; c < _baker.LayoutWidth; c++)
                 _gridSourceFiles.ColumnDefinitions.Add(new ColumnDefinition());
 
-            for(int r =0; r < _baker.LayoutHeight; r++)
+            for (int r = 0; r < _baker.LayoutHeight; r++)
                 _gridSourceFiles.RowDefinitions.Add(new RowDefinition());
 
             for (int r = 0; r < _baker.LayoutHeight; r++)
             {
                 for (int c = 0; c < _baker.LayoutWidth; c++)
                 {
-                    var list = new ListBox();
-                    list.FontSize = 12;
-                    list.SetValue(Grid.ColumnProperty, c);
-                    list.SetValue(Grid.RowProperty, r);
-                    list.AllowDrop = true;
-                    list.DragEnter += SourceFileList_DragEnter;
-                    list.Drop += SourceFileList_Drop;
-                    list.MouseDoubleClick += SourceFileList_MouseDoubleClick;
-                    _gridSourceFiles.Children.Add(list);
+                    var listBox = new ListBox();
+                    listBox.Tag = new Point(c, r);
+                    listBox.FontSize = 12;
+                    listBox.SetValue(Grid.ColumnProperty, c);
+                    listBox.SetValue(Grid.RowProperty, r);
+                    listBox.AllowDrop = true;
+                    listBox.DragEnter += SourceFileList_DragEnter;
+                    listBox.Drop += (sender, e) =>
+                    {
+                        var box = sender as ListBox;
+                        var pt = (Point)box.Tag;
+                        var col = (int)pt.X;
+                        var row = (int)pt.Y;
+                        var fileData = e.Data.GetData(DataFormats.FileDrop) as string[];
+                        var list = new List<string>();
+                        list.AddRange(fileData);
+                        foreach (var item in box.Items)
+                            list.Add(item as string);
+                        box.Items.Clear();
+                        _sources[col, row].Clear();
+                        foreach (var item in list)
+                        {
+                            box.Items.Add(item);
+                            _sources[col, row].Add(item);
+                        }
+                    };
+                    listBox.MouseDoubleClick += (sender, e) =>
+                    {
+                        if (listBox.SelectedIndex != -1)
+                        {
+                            var box = sender as ListBox;
+                            var pt = (Point)box.Tag;
+                            var col = (int)pt.X;
+                            var row = (int)pt.Y;
+                            _sources[col, row].Remove(box.SelectedItem.ToString());
+                            listBox.Items.RemoveAt(box.SelectedIndex);
+                        }
+                    };
+                    _gridSourceFiles.Children.Add(listBox);
                 }
             }
         }
@@ -76,20 +114,6 @@ namespace Guanomancer.TextureAtlasBaker
 
             if (listBox.SelectedIndex != -1)
                 listBox.Items.RemoveAt(listBox.SelectedIndex);
-        }
-
-        private void SourceFileList_Drop(object sender, DragEventArgs e)
-        {
-            var listBox = sender as ListBox;
-
-            var fileData = e.Data.GetData(DataFormats.FileDrop) as string[];
-            var list = new List<string>();
-            list.AddRange(fileData);
-            foreach (var item in listBox.Items)
-                list.Add(item as string);
-            listBox.Items.Clear();
-            foreach (var item in list)
-                listBox.Items.Add(item);
         }
 
         private void SourceFileList_DragEnter(object sender, DragEventArgs e)
@@ -137,44 +161,80 @@ namespace Guanomancer.TextureAtlasBaker
             RecreateFileGrid();
         }
 
-        private void _txtLayerName_TextChanged(object sender, TextChangedEventArgs e)
+        private void _txtChannelName_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (!_isInitialized) return;
 
-            _btnAddLayer.IsEnabled = _txtLayerName.Text.Length > 0 && !_lstLayers.Items.Contains(_txtLayerName.Text);
+            _btnAddChannel.IsEnabled = _txtChannelName.Text.Length > 0 && !_lstChannels.Items.Contains(_txtChannelName.Text);
         }
 
-        private void _lstLayers_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void _lstChannels_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (!_isInitialized) return;
 
-            _btnRemoveLayer.IsEnabled = _lstLayers.SelectedItem != null;
+            _btnRemoveChannel.IsEnabled = _lstChannels.SelectedItem != null;
+
+            if (_lstChannels.SelectedItem != null)
+            {
+                var inputs = new string[_baker.LayoutWidth, _baker.LayoutHeight][];
+                for (int r = 0; r < _baker.LayoutHeight; r++)
+                {
+                    for (int c = 0; c < _baker.LayoutWidth; c++)
+                    {
+                        inputs[c, r] = _sources[c, r].ToArray();
+                    }
+                }
+                _baker.InputFiles = inputs;
+
+                string selectedChannel;
+                if (_lstChannels.SelectedItem is ListBoxItem)
+                    selectedChannel = (_lstChannels.SelectedItem as ListBoxItem).Content.ToString();
+                else
+                    selectedChannel = _lstChannels.SelectedItem.ToString();
+
+                Task.Run(() =>
+                {
+                    _baker.GenerateChannel(selectedChannel, out byte[] previewBuffer);
+                    _imgPreview.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        using (var ms = new MemoryStream(previewBuffer))
+                        {
+                            var previewImage = new BitmapImage();
+                            previewImage.BeginInit();
+                            previewImage.StreamSource = ms;
+                            previewImage.CacheOption = BitmapCacheOption.OnLoad;
+                            previewImage.EndInit();
+                            _imgPreview.Source = previewImage;
+                        }
+                    }));
+                });
+            }
         }
 
-        private void _btnAddLayer_Click(object sender, RoutedEventArgs e)
+        private void _btnAddChannel_Click(object sender, RoutedEventArgs e)
         {
-            _lstLayers.Items.Add(_txtLayerName.Text);
-            _txtLayerName.Text = "";
+            _lstChannels.Items.Add(_txtChannelName.Text);
+            _txtChannelName.Text = "";
             UpdateOutputFiles();
         }
 
-        private void _btnRemoveLayer_Click(object sender, RoutedEventArgs e)
+        private void _btnRemoveChannel_Click(object sender, RoutedEventArgs e)
         {
-            _lstLayers.Items.RemoveAt(_lstLayers.SelectedIndex);
+            _lstChannels.Items.RemoveAt(_lstChannels.SelectedIndex);
             UpdateOutputFiles();
         }
 
         private void UpdateOutputFiles()
         {
             _lstOutputFiles.Items.Clear();
-            foreach (var layer in _lstLayers.Items)
-                _lstOutputFiles.Items.Add(_baker.GetOutputFileFromLayerName(layer.ToString()));
+            foreach (var layer in _lstChannels.Items)
+                _lstOutputFiles.Items.Add(_baker.GetOutputFileFromChannelName(layer.ToString()));
         }
 
-        private void _txtLayerName_KeyDown(object sender, KeyEventArgs e)
+        private void _txtChannelName_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter && _btnAddLayer.IsEnabled)
-                _btnAddLayer_Click(this, null);
+            if (e.Key == Key.Enter && _btnAddChannel.IsEnabled)
+                _btnAddChannel_Click(this, null);
         }
 
         private void _txtOutputFile_TextChanged(object sender, TextChangedEventArgs e)
@@ -199,6 +259,11 @@ namespace Guanomancer.TextureAtlasBaker
             if (!_isInitialized) return;
 
             _baker.PixelFormatString = _cboPixelFormat.SelectedItem.ToString();
+        }
+
+        private void _btnPreviewMask_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }
