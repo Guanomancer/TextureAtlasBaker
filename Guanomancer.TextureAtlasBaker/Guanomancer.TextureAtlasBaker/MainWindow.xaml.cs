@@ -24,5 +24,20 @@ namespace Guanomancer.TextureAtlasBaker
         {
             InitializeComponent();
         }
+
+        private void _btnMinimize_Click(object sender, RoutedEventArgs e)
+        {
+            App.Current.MainWindow.WindowState = WindowState.Minimized;
+        }
+
+        private void _btnClose_Click(object sender, RoutedEventArgs e)
+        {
+            App.Current.MainWindow.Close();
+        }
+
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            App.Current.MainWindow.DragMove();
+        }
     }
 }
