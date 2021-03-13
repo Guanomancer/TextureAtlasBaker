@@ -233,7 +233,9 @@ namespace Guanomancer.TextureAtlasBaker
         {
             _lstOutputFiles.Items.Clear();
             foreach (var layer in _lstChannels.Items)
-                _lstOutputFiles.Items.Add(_baker.GetOutputFileFromChannelName(layer.ToString()));
+                _lstOutputFiles.Items.Add(_baker.GetOutputFileFromChannelName(
+                    layer is ListBoxItem ? (layer as ListBoxItem).Content.ToString() : layer.ToString()
+                    ));
         }
 
         private void _txtChannelName_KeyDown(object sender, KeyEventArgs e)

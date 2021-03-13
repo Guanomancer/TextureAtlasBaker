@@ -138,7 +138,7 @@
                             <Label Foreground="White" FontSize="12pt" >Filename:</Label>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                 <TextBox x:Name="_txtOutputFile" FontSize="12pt" Width="200" Height="24"
-                                         TextChanged="_txtOutputFile_TextChanged">\Texture_*.pmg</TextBox>
+                                         TextChanged="_txtOutputFile_TextChanged">\Texture_*.png</TextBox>
                             </StackPanel>
                         </DockPanel>
                         <DockPanel VerticalAlignment="Center">
