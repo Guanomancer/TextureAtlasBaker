@@ -28,13 +28,15 @@ namespace Guanomancer.TextureAtlasBaker.Core
         public const int FORMAT_MIN_RESOLUTION = 1;
         public const int FORMAT_MAX_RESOLUTION = 32768;
 
+        public int PreviewResolution { get; set; } = 512;
+
         private int _layoutWidth = 2;
         private int _layoutHeight = 2;
         private int _resolution = 2048;
         private PixelFormat _pixelFormat = PixelFormat.Format32bppArgb;
 
         private string[] _channelIdentifiers = new string[0];
-        private string _outputFileFormat = "/TextureSet_*.png";
+        private string _outputFileFormat = "\\TextureSet_*.png";
         private string[,][] _inputFiles = new string[2, 2][];
 
         private string[] _maskChannels;
@@ -189,7 +191,7 @@ namespace Guanomancer.TextureAtlasBaker.Core
         {
             foreach (var filename in _inputFiles[column, row])
             {
-                foreach(var chanIdent in channelIdentifier.Split('/'))
+                foreach (var chanIdent in channelIdentifier.Split('/'))
                 {
                     if (filename.Contains(chanIdent))
                     {
@@ -206,17 +208,21 @@ namespace Guanomancer.TextureAtlasBaker.Core
         {
             if (channelName.IndexOf('/') != -1)
                 channelName = channelName.Split('/')[0];
-            return _outputFileFormat.Replace("*", channelName);
+            var file = _outputFileFormat.Replace("*", channelName);
+            if (file.StartsWith("\\"))
+                file = Path.GetFullPath(file.Substring(1));
+            return file;
         }
 
-        public void GenerateChannel(string channelIdentifier, out byte[] previewBuffer)
+        public void GenerateChannel(bool isPreview, string channelIdentifier, out byte[] buffer)
         {
-            using (Bitmap bmp = new Bitmap(_resolution, _resolution, _pixelFormat))
+            var resolution = isPreview ? PreviewResolution : _resolution;
+            using (Bitmap bmp = GenerateChannelBitmap(isPreview, channelIdentifier))
             {
                 using (var gfx = Graphics.FromImage(bmp))
                 {
-                    int colSpan = _resolution / _layoutWidth;
-                    int rowSpan = _resolution / _layoutHeight;
+                    int colSpan = resolution / _layoutWidth;
+                    int rowSpan = resolution / _layoutHeight;
                     for (int col = 0; col < _layoutWidth; col++)
                     {
                         for (int row = 0; row < _layoutHeight; row++)
@@ -236,14 +242,36 @@ namespace Guanomancer.TextureAtlasBaker.Core
                 using (var ms = new MemoryStream())
                 {
                     bmp.Save(ms, ImageFormat.Png);
-                    previewBuffer = ms.ToArray();
+                    buffer = ms.ToArray();
                 }
             }
         }
 
-        public void GenerateMask(out byte[] previewBuffer)
+        private Bitmap GenerateChannelBitmap(bool isPreview, string channelIdentifier)
         {
-
+            var resolution = isPreview ? PreviewResolution : _resolution;
+            Bitmap bmp = new Bitmap(resolution, resolution, _pixelFormat);
+            using (var gfx = Graphics.FromImage(bmp))
+            {
+                int colSpan = resolution / _layoutWidth;
+                int rowSpan = resolution / _layoutHeight;
+                for (int col = 0; col < _layoutWidth; col++)
+                {
+                    for (int row = 0; row < _layoutHeight; row++)
+                    {
+                        var x = col * colSpan;
+                        var y = row * rowSpan;
+                        if (GetInputFile(col, row, channelIdentifier, out string file))
+                        {
+                            using (var img = Image.FromFile(file))
+                            {
+                                gfx.DrawImage(img, x, y, colSpan, rowSpan);
+                            }
+                        }
+                    }
+                }
+            }
+            return bmp;
         }
     }
 }

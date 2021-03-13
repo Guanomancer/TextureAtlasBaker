@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Guanomancer.TextureAtlasBaker"
         mc:Ignorable="d"
         Title="Guanomancer - Texture Atlas Baker" Background="Transparent" WindowStyle="None" ResizeMode="NoResize"
-        Width="1000" Height="1110"
+        Width="1000" Height="860"
         MouseDown="Window_MouseDown" AllowsTransparency="true">
     <Border BorderBrush="White" BorderThickness="2" CornerRadius="8" Background="#222222"
             Margin="5" Padding="10">
@@ -92,9 +92,9 @@
                             </StackPanel>
                         </DockPanel>
 
-                        <Border BorderThickness="0,0,0,1" BorderBrush="White" Margin="0,5">
+                        <!--Border BorderThickness="0,0,0,1" BorderBrush="White" Margin="0,5">
                             <Label Foreground="White" FontSize="16pt">Mask channels (Name or #00-FF)</Label>
-                        </Border>
+                        </>
                         <DockPanel VerticalAlignment="Center">
                             <Label Foreground="White" FontSize="12pt">Red:</Label>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
@@ -119,7 +119,7 @@
                         <DockPanel VerticalAlignment="Center">
                             <Label Foreground="White" FontSize="12pt">Alpha:</Label>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                <TextBox x:Name="_txtAlphaChannelIdentifier" FontSize="12pt" Width="150" Height="24">Smoothness</TextBox>
+                                <TextBox x:Name="_txtAlphaChannelIdentifier" FontSize="12pt" Width="150" Height="24">Smoothness/Roughness</TextBox>
                                 <CheckBox x:Name="_chkAlphaChannelInvert" ToolTip="Invert"/>
                             </StackPanel>
                         </DockPanel>
@@ -129,7 +129,7 @@
                                 <Button x:Name="_btnPreviewMask" FontSize="12pt" Width="200" Height="24"
                                             Click="_btnPreviewMask_Click">Preview mask</Button>
                             </StackPanel>
-                        </DockPanel>
+                        </DockPanel-->
 
                         <Border BorderThickness="0,0,0,1" BorderBrush="White" Margin="0,5">
                             <Label Foreground="White" FontSize="16pt">Output</Label>
@@ -138,7 +138,7 @@
                             <Label Foreground="White" FontSize="12pt" >Filename:</Label>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                 <TextBox x:Name="_txtOutputFile" FontSize="12pt" Width="200" Height="24"
-                                         TextChanged="_txtOutputFile_TextChanged">Texture_*.jpg</TextBox>
+                                         TextChanged="_txtOutputFile_TextChanged">\Texture_*.pmg</TextBox>
                             </StackPanel>
                         </DockPanel>
                         <DockPanel VerticalAlignment="Center">
@@ -147,6 +147,18 @@
                                 <ListBox x:Name="_lstOutputFiles" FontSize="12pt" Width="200" Height="100"></ListBox>
                             </StackPanel>
                         </DockPanel>
+
+                        <Border BorderThickness="0,0,0,1" BorderBrush="White" Margin="0,5">
+                            <Label Foreground="White" FontSize="16pt">Render</Label>
+                        </Border>
+                        <DockPanel VerticalAlignment="Center">
+                            <Label Foreground="White" FontSize="12pt"></Label>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button x:Name="_btnExport" FontSize="16pt" Width="100" Height="40"
+                                            Click="_btnExport_Click">Export</Button>
+                            </StackPanel>
+                        </DockPanel>
+                        
                     </StackPanel>
                 </Border>
                 <Border BorderBrush="White" BorderThickness="2" CornerRadius="8"
@@ -156,13 +168,13 @@
                         <Border BorderThickness="0,0,0,1" BorderBrush="White" Margin="0,5">
                             <Label Foreground="White" FontSize="16pt">Source files (drag to add, double-click to remove)</Label>
                         </Border>
-                        <Grid x:Name="_gridSourceFiles" Width="400" Height="400"/>
+                        <Grid x:Name="_gridSourceFiles" Width="500" Height="400"/>
 
                         <Border BorderThickness="0,0,0,1" BorderBrush="White" Margin="0,5">
                             <Label Foreground="White" FontSize="16pt">Preview</Label>
                         </Border>
                         <Border BorderThickness="1" BorderBrush="silver">
-                            <Image x:Name="_imgPreview" Width="500" Height="500"></Image>
+                            <Image x:Name="_imgPreview" Width="256" Height="256"></Image>
                         </Border>
                     </StackPanel>
                 </Border>

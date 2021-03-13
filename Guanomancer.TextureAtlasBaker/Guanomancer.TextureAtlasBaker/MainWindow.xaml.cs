@@ -176,15 +176,7 @@ namespace Guanomancer.TextureAtlasBaker
 
             if (_lstChannels.SelectedItem != null)
             {
-                var inputs = new string[_baker.LayoutWidth, _baker.LayoutHeight][];
-                for (int r = 0; r < _baker.LayoutHeight; r++)
-                {
-                    for (int c = 0; c < _baker.LayoutWidth; c++)
-                    {
-                        inputs[c, r] = _sources[c, r].ToArray();
-                    }
-                }
-                _baker.InputFiles = inputs;
+                UpdateBakerInputFiles();
 
                 string selectedChannel;
                 if (_lstChannels.SelectedItem is ListBoxItem)
@@ -194,7 +186,7 @@ namespace Guanomancer.TextureAtlasBaker
 
                 Task.Run(() =>
                 {
-                    _baker.GenerateChannel(selectedChannel, out byte[] previewBuffer);
+                    _baker.GenerateChannel(true, selectedChannel, out byte[] previewBuffer);
                     _imgPreview.Dispatcher.BeginInvoke(new Action(() =>
                     {
                         using (var ms = new MemoryStream(previewBuffer))
@@ -209,6 +201,19 @@ namespace Guanomancer.TextureAtlasBaker
                     }));
                 });
             }
+        }
+
+        private void UpdateBakerInputFiles()
+        {
+            var inputs = new string[_baker.LayoutWidth, _baker.LayoutHeight][];
+            for (int r = 0; r < _baker.LayoutHeight; r++)
+            {
+                for (int c = 0; c < _baker.LayoutWidth; c++)
+                {
+                    inputs[c, r] = _sources[c, r].ToArray();
+                }
+            }
+            _baker.InputFiles = inputs;
         }
 
         private void _btnAddChannel_Click(object sender, RoutedEventArgs e)
@@ -261,9 +266,25 @@ namespace Guanomancer.TextureAtlasBaker
             _baker.PixelFormatString = _cboPixelFormat.SelectedItem.ToString();
         }
 
-        private void _btnPreviewMask_Click(object sender, RoutedEventArgs e)
+        private void _btnExport_Click(object sender, RoutedEventArgs e)
         {
+            UpdateBakerInputFiles();
 
+            var channelIdentifiers = new List<string>();
+            foreach (var channelIdentifier in _lstChannels.Items)
+            {
+                channelIdentifiers.Add(channelIdentifier is ListBoxItem ?
+                    (channelIdentifier as ListBoxItem).Content.ToString() :
+                    channelIdentifier.ToString());
+            }
+            Task.Run(() =>
+            {
+                foreach (var channelIdentifierString in channelIdentifiers)
+                {
+                    _baker.GenerateChannel(false, channelIdentifierString, out byte[] buffer);
+                    File.WriteAllBytes(_baker.GetOutputFileFromChannelName(channelIdentifierString), buffer);
+                }
+            });
         }
     }
 }
